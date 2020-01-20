@@ -35,16 +35,16 @@ public class Game {
     }
 
 
-    public void testEverythingCount() {
+    public void testEverything5000Count() {
         long startTime = System.nanoTime();
         int fails = 0;
         int tries = 50000;
         long shuffleTotal = 0;
         long iterationTotal = 0;
-        iterationCount = 0;
         for (int i = 0; i < tries; i++) {
             try {
-                play(8);
+                searching=7;
+                play(getDecklistStandartGitrog());
                 shuffleTotal += shufflecount;
                 iterationTotal += iterationCount;
             } catch (IllegalStateException e) {
@@ -63,53 +63,66 @@ public class Game {
         System.out.println("Duration: " + duration / 100000000);
     }
 
-    public void test() {
+    public void test(List<Integer> Decklist, int tries, int searching) {
+        long startTime = System.nanoTime();
         int fails = 0;
-        int tries = 1000;
+        long shuffleTotal = 0;
+        long iterationTotal = 0;
+        this.searching = searching;
+        iterationCount = 0;
+        shufflecount = 0;
         for (int i = 0; i < tries; i++) {
             try {
-                play();
+                play(Decklist);
+                shuffleTotal += shufflecount;
+                iterationTotal +=  iterationCount;
             } catch (IllegalStateException e) {
+                shuffleTotal += shufflecount;
+                iterationTotal += iterationCount;
                 fails++;
+                System.out.println(fails +" "+ e.getLocalizedMessage() );
+
             }
         }
+        long endTime = System.nanoTime();
+        long duration = (endTime - startTime);
         System.out.println("fails: " + fails + " out of " + tries + " (" + ((float) fails / (float) tries * 100.0) + "%)");
+        System.out.println("Average Shuffle per game: " + (shuffleTotal / tries) + " total: " + shuffleTotal);
+        System.out.println("Average dakmor Dredges per game: " + (iterationTotal / tries) + " total: " + iterationTotal);
+        System.out.println("Duration: " + duration / 1000000000.0);
     }
 
-    public void play() {
-        searching = 7;
-        Deck = StandardGitrogDecklist();
-        Hand = new ArrayList<>();
-        Graveyard = new ArrayList<>();
-        DerStack = new ArrayDeque<>();
-        WaitingForStack = new ArrayList<>();
-        Deck.remove((Integer) 11);
-        Hand.add(11);
-        shuffle();
-        shufflecount = 0;
-        iterationCount = 0;
-        draw(7);
-
-        doYourThing();
-    }
-
-    public void play(int searching) {
+    private void play(int searching) {
         this.searching = searching;
-        Deck = StandardGitrogDecklist();
+        StartSetUp(getDecklistStandartGitrog());
+        doYourThing();
+    }
+
+    private void play(List<Integer> Decklist) {
+        StartSetUp(Decklist);
+        doYourThing();
+    }
+
+    public List<Integer> getGraveyard() {
+        return Graveyard;
+    }
+
+    private void StartSetUp(List<Integer> Decklist){
+        Deck = new ArrayList<>();
+        Deck.addAll(Decklist);
         Hand = new ArrayList<>();
         Graveyard = new ArrayList<>();
         DerStack = new ArrayDeque<>();
         WaitingForStack = new ArrayList<>();
-        Deck.remove((Integer) 11);
+        if(Deck.remove((Integer) 11)==false){
+            lose("Starting Deck did not contain Dakmor");
+        };
         Hand.add(11);
         shuffle();
         shufflecount = 0;
         iterationCount = 0;
         draw(7);
-
-        doYourThing();
     }
-
 
     public void statusReport() {
         //System.out.print("Cards in hand("+Hand.size()+"): ");
@@ -177,8 +190,8 @@ public class Game {
     }
 
     private boolean weWon(int searching) {
-        return (searching <= (Collections.frequency(Hand, (Integer) 42)
-                + Collections.frequency(Hand, (Integer) 43)));
+        return (searching <= (Collections.frequency(Hand,  42)
+                + Collections.frequency(Hand,  43)));
     }
 
     private void handleDaStack() {
@@ -357,7 +370,51 @@ public class Game {
         throw new IllegalStateException("Lost. Reason: " + reason);
     }
 
-    private List<Integer> StandardGitrogDecklist() {
+    public static List<Integer> DecklistCustom(
+            int TitanNumber,
+            int GaesBlessingNumber,
+            int Lands,
+            int NonLands,
+            int searchingForNonLands,
+            int searchingForLands,
+            int ggt,
+            int loam
+            ) {
+        List<Integer> Decklist = new ArrayList<>();
+        for (int i = 0; i < TitanNumber; i++) {
+            Decklist.add(1);
+        }
+        for (int i = 0; i <  GaesBlessingNumber ; i++) {
+            Decklist.add(  2 );
+        }
+        for (int i = 0; i <  Lands -1; i++) {
+            Decklist.add( 10  );
+        }
+        //dakmor is always there for us. that is why we add Lands -1
+        Decklist.add(11);
+        for (int i = 0; i <  NonLands ; i++) {
+            Decklist.add( 0  );
+        }
+        for (int i = 0; i <  searchingForLands ; i++) {
+            Decklist.add(  43 );
+        }
+        for (int i = 0; i <  searchingForNonLands ; i++) {
+            Decklist.add( 42  );
+        }
+        for (int i = 0; i <  ggt ; i++) {
+            Decklist.add( 6  );
+        }
+        for (int i = 0; i <  loam ; i++) {
+            Decklist.add( 5  );
+        }
+
+        if(Decklist.size()!=99){
+            System.out.println("Warning: Decksize not 99, its "+ Decklist.size());
+        }
+        return Decklist;
+    }
+
+    private List<Integer> getDecklistStandartGitrog() {
         List<Integer> integers = new ArrayList<>();
         //add some cards
         // 0: useless non-land-card
