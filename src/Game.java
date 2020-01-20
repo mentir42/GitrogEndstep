@@ -35,34 +35,6 @@ public class Game {
     }
 
 
-    public void testEverything5000Count() {
-        long startTime = System.nanoTime();
-        int fails = 0;
-        int tries = 50000;
-        long shuffleTotal = 0;
-        long iterationTotal = 0;
-        for (int i = 0; i < tries; i++) {
-            try {
-                searching=7;
-                play(getDecklistStandartGitrog());
-                shuffleTotal += shufflecount;
-                iterationTotal += iterationCount;
-            } catch (IllegalStateException e) {
-                shuffleTotal += shufflecount;
-                iterationTotal += iterationCount;
-                fails++;
-                //System.out.println(fails +" "+ e.getLocalizedMessage() );
-
-            }
-        }
-        long endTime = System.nanoTime();
-        long duration = (endTime - startTime);
-        System.out.println("fails: " + fails + " out of " + tries + " (" + ((float) fails / (float) tries * 100.0) + "%)");
-        System.out.println("Average Shuffle per game: " + (shuffleTotal / tries) + " total: " + shuffleTotal);
-        System.out.println("Average dakmor Dredges per game: " + (iterationTotal / tries) + " total: " + iterationTotal);
-        System.out.println("Duration: " + duration / 100000000);
-    }
-
     public void test(List<Integer> Decklist, int tries, int searching) {
         long startTime = System.nanoTime();
         int fails = 0;
@@ -92,19 +64,9 @@ public class Game {
         System.out.println("Duration: " + duration / 1000000000.0);
     }
 
-    private void play(int searching) {
-        this.searching = searching;
-        StartSetUp(getDecklistStandartGitrog());
-        doYourThing();
-    }
-
     private void play(List<Integer> Decklist) {
         StartSetUp(Decklist);
         doYourThing();
-    }
-
-    public List<Integer> getGraveyard() {
-        return Graveyard;
     }
 
     private void StartSetUp(List<Integer> Decklist){
@@ -189,11 +151,6 @@ public class Game {
                 + Collections.frequency(Hand, (Integer) 43)));
     }
 
-    private boolean weWon(int searching) {
-        return (searching <= (Collections.frequency(Hand,  42)
-                + Collections.frequency(Hand,  43)));
-    }
-
     private void handleDaStack() {
         //todo: make smarter so we dont die to empty library that often
         if (WaitingForStack.size() == 1) {
@@ -225,7 +182,6 @@ public class Game {
             throw new IllegalArgumentException("Number of cards in hand is too damn high");
     }
 
-
     private int whichCardToDiscard() {
         if (Hand.size() == 8) {
             //always discard dakmor
@@ -237,7 +193,7 @@ public class Game {
                 return 10;
             } else {
                 //System.out.println("dont have lands to discard, RIP");
-                lose();
+                lose("No Lands in 8-card Hand, we stuck");
                 return Hand.get(0);
             }
         }
@@ -327,10 +283,6 @@ public class Game {
         for (int i = 0; i < anzahl; i++) {
             Hand.add(Deck.remove(0));
         }
-    }
-
-    private void mill() {
-        mill(1);
     }
 
     private void mill(int anzahl) {
