@@ -27,8 +27,8 @@ public class Game {
         Collections.shuffle(Deck);
     }
 
-    public long shufflecount;
-    public long iterationCount;
+    public int shufflecount;
+    public int dakmorDredgeCount;
 
     public Integer passPriority() {
         return (DerStack.size() == 0) ? 10 : DerStack.pop();
@@ -36,21 +36,25 @@ public class Game {
 
 
     public void test(List<Integer> Decklist, int tries, int searching) {
+        //setup stats like time, how often we dredge stats and stuff
         long startTime = System.nanoTime();
         int fails = 0;
-        long shuffleTotal = 0;
-        long iterationTotal = 0;
+        List<Integer> shuffleStats = new ArrayList<>();
+        List<Integer> dakmorDredgeStats = new ArrayList<>();
+
         this.searching = searching;
-        iterationCount = 0;
+        dakmorDredgeCount = 0;
         shufflecount = 0;
+
         for (int i = 0; i < tries; i++) {
             try {
                 play(Decklist);
-                shuffleTotal += shufflecount;
-                iterationTotal +=  iterationCount;
+                shuffleStats.add(shufflecount);
+                dakmorDredgeStats.add(dakmorDredgeCount);
+
             } catch (IllegalStateException e) {
-                shuffleTotal += shufflecount;
-                iterationTotal += iterationCount;
+                shuffleStats.add(shufflecount);
+                dakmorDredgeStats.add(dakmorDredgeCount);
                 fails++;
                 System.out.println(fails +" "+ e.getLocalizedMessage() );
 
@@ -58,9 +62,30 @@ public class Game {
         }
         long endTime = System.nanoTime();
         long duration = (endTime - startTime);
+        long shuffleTotal = shuffleStats.stream().mapToInt(Integer::intValue).sum();;
+        long dakmorDredgesTotal = dakmorDredgeStats.stream().mapToInt(Integer::intValue).sum();
+
+        Collections.sort(dakmorDredgeStats);
+        Collections.sort(shuffleStats);
+        int shuffleBest = shuffleStats.get(0);
+        int shuffle5 = shuffleStats.get( (int) (shuffleStats.size()*0.05));
+        int shuffleMedian = shuffleStats.get( (int) (shuffleStats.size()*0.5));
+        int shuffle95 = shuffleStats.get( (int) (shuffleStats.size()*0.95));
+        int shuffleWorst = shuffleStats.get(shuffleStats.size()-1);
+
+        int dakmorDredgeBest = dakmorDredgeStats.get(0);
+        int dakmorDredge5 = dakmorDredgeStats.get( (int) (dakmorDredgeStats.size()*0.05));
+        int dakmorDredgeMedian = dakmorDredgeStats.get( (int) (dakmorDredgeStats.size()*0.5));
+        int dakmorDredge95 = dakmorDredgeStats.get( (int) (dakmorDredgeStats.size()*0.95));
+        int dakmorDredgeWorst = dakmorDredgeStats.get(dakmorDredgeStats.size()-1);
+
         System.out.println("fails: " + fails + " out of " + tries + " (" + ((float) fails / (float) tries * 100.0) + "%)");
         System.out.println("Average Shuffle per game: " + (shuffleTotal / tries) + " total: " + shuffleTotal);
-        System.out.println("Average dakmor Dredges per game: " + (iterationTotal / tries) + " total: " + iterationTotal);
+        System.out.println("Shufflestats (best, 5, median, 95, worst) :"+shuffleBest+
+                ", "+shuffle5+", "+shuffleMedian+", "+shuffle95+", "+shuffleWorst);
+        System.out.println("Average dakmor Dredges per game: " + (dakmorDredgesTotal / tries) + " total: " + dakmorDredgesTotal);
+        System.out.println("Dakmordredge-stats (best, 5, median, 95, worst) :"+dakmorDredgeBest+
+                ", "+dakmorDredge5+", "+dakmorDredgeMedian+", "+dakmorDredge95+", "+dakmorDredgeWorst);
         System.out.println("Duration: " + duration / 1000000000.0);
     }
 
@@ -82,7 +107,7 @@ public class Game {
         Hand.add(11);
         shuffle();
         shufflecount = 0;
-        iterationCount = 0;
+        dakmorDredgeCount = 0;
         draw(7);
     }
 
@@ -286,7 +311,7 @@ public class Game {
     }
 
     private void mill(int anzahl) {
-        iterationCount++;
+        dakmorDredgeCount++;
         boolean milledALand = false;
         if (Deck.size() < anzahl) {
             lose("tried milling too many cards");
